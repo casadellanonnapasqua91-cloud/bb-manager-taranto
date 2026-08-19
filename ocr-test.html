@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Test OCR CIE</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+body{
+  font-family:Arial,sans-serif;
+  padding:20px;
+  background:#f4f6f8;
+}
+
+button{
+  width:100%;
+  padding:16px;
+  margin:10px 0;
+  font-size:18px;
+  border:0;
+  border-radius:10px;
+  background:#2f80ed;
+  color:white;
+  font-weight:bold;
+}
+
+img{
+  width:100%;
+  margin-top:10px;
+  display:none;
+}
+
+#stato{
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+pre{
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔎 Test OCR CIE</h1>
+
+<button onclick="document.getElementById('foto').click()">
+📷 SCATTA FOTO DOCUMENTO
+</button>
+
+<input
+  id="foto"
+  type="file"
+  accept="image/*"
+  capture="environment"
+  style="display:none"
+  onchange="leggiFoto(event)"
+>
+
+<img id="immagine">
+
+<div id="stato">
+Pronto.
+</div>
+
+<script>
+
+async function leggiFoto(event){
+
+  const file=event.target.files[0];
+
+  if(!file){
+    return;
+  }
+
+  const immagine=document.getElementById("immagine");
+  const stato=document.getElementById("stato");
+
+  immagine.src=URL.createObjectURL(file);
+  immagine.style.display="block";
+
+  stato.innerHTML="📷 Foto acquisita.<br>⏳ Avvio OCR...";
+
+  try{
+
+    const worker=await Tesseract.createWorker(
+      "ita+eng",
+      1,
+      {
+        logger:function(m){
+
+          console.log(m);
+
+          if(m.status){
+
+            let p="";
+
+            if(m.progress){
+              p=" "+Math.round(m.progress*100)+"%";
+            }
+
+            stato.innerHTML=
+              "🔎 "+m.status+p;
+
+          }
+
+        }
+      }
+    );
+
+    const risultato=
+      await worker.recognize(file);
+
+    const testo=
+      risultato.data.text || "";
+
+    await worker.terminate();
+
+    console.log("OCR:",testo);
+
+    stato.innerHTML=
+      "<b>✅ OCR TERMINATO</b><br><br>" +
+      "<pre>"+escapeHtml(testo)+"</pre>";
+
+  }catch(error){
+
+    console.error(error);
+
+    stato.innerHTML=
+      "<b>❌ ERRORE OCR</b><br><br>"+
+      escapeHtml(error.toString());
+
+  }
+
+}
+
+
+function escapeHtml(testo){
+
+  return String(testo || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+
+}
+
+</script>
+
+</body>
+</html>
