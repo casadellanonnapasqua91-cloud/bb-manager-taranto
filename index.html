@@ -1,1 +1,448 @@
-<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#2f80ed"><link rel="manifest" href="manifest.json"><title>B&B Manager Taranto</title><style>body{font-family:Arial;margin:0;background:#f4f6f8}header{background:#2f80ed;color:white;padding:18px}main{padding:16px;max-width:700px;margin:auto}.card{background:white;padding:16px;margin:12px 0;border-radius:14px}input,button{width:100%;box-sizing:border-box;padding:12px;margin:5px 0;border-radius:8px}button{background:#2f80ed;color:white;border:0}</style></head><body><header><h1>B&B Manager Taranto</h1></header><main><div class="card"><h2>Nuovo ospite</h2><input id="cognome" placeholder="Cognome"><input id="nome" placeholder="Nome"><input id="documento" placeholder="Numero documento"><input id="arrivo" type="date"><input id="partenza" type="date"><button onclick="salva()">Salva ospite</button><button onclick="document.getElementById('foto').click()">📷 Foto documento</button><input id="foto" type="file" accept="image/*" capture="environment" hidden></div><div class="card"><h2>Esportazioni</h2><button onclick="exp('alloggiati')">TXT Alloggiati Web</button><button onclick="exp('spot')">XML SPOT Puglia</button><button onclick="exp('taranto')">File Tassa di soggiorno Taranto</button></div><div class="card"><h2>Ospiti</h2><div id="lista"></div></div></main><script>const K='bbm';function A(){return JSON.parse(localStorage.getItem(K)||'[]')}function R(){lista.innerHTML=A().map(x=>`<p><b>${x.cognome} ${x.nome}</b><br>${x.documento||''}<br>${x.arrivo||''} → ${x.partenza||''}</p>`).join('')||'Nessun ospite.'}function salva(){let x={cognome:cognome.value,nome:nome.value,documento:documento.value,arrivo:arrivo.value,partenza:partenza.value};if(!x.cognome||!x.nome)return alert('Inserisci nome e cognome');let a=A();a.push(x);localStorage.setItem(K,JSON.stringify(a));R()}function dl(n,t,type){let u=URL.createObjectURL(new Blob([t],{type})),a=document.createElement('a');a.href=u;a.download=n;a.click();URL.revokeObjectURL(u)}function exp(k){let a=A();if(!a.length)return alert('Nessun ospite');if(k==='alloggiati')dl('alloggiati.txt',a.map(x=>[x.cognome,x.nome,x.documento,x.arrivo,x.partenza].join(';')).join('\n'),'text/plain');if(k==='spot')dl('spot.xml','<?xml version="1.0"?><ospiti>'+a.map(x=>`<ospite><cognome>${x.cognome}</cognome><nome>${x.nome}</nome><documento>${x.documento||''}</documento><arrivo>${x.arrivo||''}</arrivo><partenza>${x.partenza||''}</partenza></ospite>`).join('')+'</ospiti>','application/xml');if(k==='taranto')dl('tassa_soggiorno_taranto.csv','Cognome;Nome;Documento;Arrivo;Partenza\n'+a.map(x=>[x.cognome,x.nome,x.documento,x.arrivo,x.partenza].join(';')).join('\n'),'text/csv')}R();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js')</script></body></html> 
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#2f80ed">
+<link rel="manifest" href="manifest.json">
+<title>B&B Manager Taranto</title>
+
+<style>
+body{
+  font-family:Arial,sans-serif;
+  margin:0;
+  background:#f4f6f8;
+  color:#222
+}
+header{
+  background:#2f80ed;
+  color:white;
+  padding:18px
+}
+main{
+  padding:16px;
+  max-width:700px;
+  margin:auto
+}
+.card{
+  background:white;
+  padding:16px;
+  margin:12px 0;
+  border-radius:14px;
+  box-shadow:0 2px 8px #0001
+}
+input,button{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc
+}
+button{
+  background:#2f80ed;
+  color:white;
+  border:0;
+  font-weight:bold
+}
+#anteprima{
+  max-width:100%;
+  margin-top:10px;
+  border-radius:10px;
+  display:none
+}
+.msg{
+  margin-top:8px;
+  padding:8px;
+  border-radius:8px;
+  background:#eef4ff
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>B&B Manager Taranto</h1>
+<div>Gestione ospiti</div>
+</header>
+
+<main>
+
+<div class="card">
+
+<h2>Nuovo ospite</h2>
+
+<input id="cognome" placeholder="Cognome">
+
+<input id="nome" placeholder="Nome">
+
+<input id="documento" placeholder="Numero documento">
+
+<input id="arrivo" type="date">
+
+<input id="partenza" type="date">
+
+<button onclick="salva()">
+💾 Salva ospite
+</button>
+
+<button onclick="apriFotocamera()">
+📷 Fotografa carta d'identità
+</button>
+
+<input
+id="foto"
+type="file"
+accept="image/*"
+capture="environment"
+hidden
+onchange="gestisciFoto(this.files[0])">
+
+<img id="anteprima">
+
+<div id="fotoMsg" class="msg" style="display:none"></div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Esportazioni</h2>
+
+<button onclick="exp('alloggiati')">
+📄 TXT Alloggiati Web
+</button>
+
+<button onclick="exp('spot')">
+📄 XML SPOT Puglia
+</button>
+
+<button onclick="exp('taranto')">
+📄 File Tassa di soggiorno Taranto
+</button>
+
+</div>
+
+
+<div class="card">
+
+<h2>Ospiti salvati</h2>
+
+<div id="lista"></div>
+
+</div>
+
+</main>
+
+
+<script>
+
+const K="bbm";
+
+
+function A(){
+
+return JSON.parse(
+localStorage.getItem(K)||"[]"
+);
+
+}
+
+
+function R(){
+
+const dati=A();
+
+document.getElementById("lista").innerHTML=
+
+dati.length ?
+
+dati.map(x=>`
+
+<p>
+
+<b>${escapeHtml(x.cognome)} ${escapeHtml(x.nome)}</b>
+
+<br>
+
+Documento: ${escapeHtml(x.documento||"")}
+
+<br>
+
+${x.arrivo||""} → ${x.partenza||""}
+
+</p>
+
+`).join("")
+
+:
+
+"Nessun ospite salvato.";
+
+}
+
+
+function escapeHtml(t){
+
+return String(t)
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;");
+
+}
+
+
+function salva(){
+
+const x={
+
+cognome:document.getElementById("cognome").value.trim(),
+
+nome:document.getElementById("nome").value.trim(),
+
+documento:document.getElementById("documento").value.trim(),
+
+arrivo:document.getElementById("arrivo").value,
+
+partenza:document.getElementById("partenza").value
+
+};
+
+if(!x.cognome || !x.nome){
+
+alert("Inserisci almeno nome e cognome");
+
+return;
+
+}
+
+const dati=A();
+
+dati.push(x);
+
+localStorage.setItem(K,JSON.stringify(dati));
+
+R();
+
+alert("Ospite salvato");
+
+}
+
+
+function apriFotocamera(){
+
+document.getElementById("foto").click();
+
+}
+
+
+function gestisciFoto(file){
+
+if(!file)return;
+
+
+const url=URL.createObjectURL(file);
+
+const img=document.getElementById("anteprima");
+
+img.src=url;
+
+img.style.display="block";
+
+
+const msg=document.getElementById("fotoMsg");
+
+msg.style.display="block";
+
+msg.innerHTML=
+
+"📷 Foto acquisita.<br><br>"+
+
+"Puoi salvarla sul telefono con il pulsante qui sotto.<br><br>"+
+
+"<a id='salvaFoto' href='"+url+"' download='carta_identita.jpg'>"+
+
+"📥 Salva foto documento"+
+
+"</a>";
+
+
+/*
+ OCR:
+
+Questa versione prepara la fotografia del documento.
+
+La lettura automatica OCR della CIE richiede
+un motore OCR integrato nell'applicazione.
+
+Non vengono inventati dati se l'OCR non è disponibile.
+*/
+
+}
+
+
+function dl(nome,testo,tipo){
+
+const url=URL.createObjectURL(
+
+new Blob([testo],{type:tipo})
+
+);
+
+const a=document.createElement("a");
+
+a.href=url;
+
+a.download=nome;
+
+a.click();
+
+URL.revokeObjectURL(url);
+
+}
+
+
+function exp(tipo){
+
+const dati=A();
+
+if(!dati.length){
+
+alert("Nessun ospite salvato");
+
+return;
+
+}
+
+
+if(tipo==="alloggiati"){
+
+const testo=dati.map(x=>
+
+[
+
+x.cognome,
+
+x.nome,
+
+x.documento,
+
+x.arrivo,
+
+x.partenza
+
+].join(";")
+
+).join("\n");
+
+
+dl(
+
+"alloggiati.txt",
+
+testo,
+
+"text/plain"
+
+);
+
+}
+
+
+if(tipo==="spot"){
+
+const testo=
+
+'<?xml version="1.0" encoding="UTF-8"?>'+
+
+"<ospiti>"+
+
+dati.map(x=>
+
+"<ospite>"+
+
+"<cognome>"+escapeHtml(x.cognome)+"</cognome>"+
+
+"<nome>"+escapeHtml(x.nome)+"</nome>"+
+
+"<documento>"+escapeHtml(x.documento||"")+"</documento>"+
+
+"<arrivo>"+(x.arrivo||"")+"</arrivo>"+
+
+"<partenza>"+(x.partenza||"")+"</partenza>"+
+
+"</ospite>"
+
+).join("")+
+
+"</ospiti>";
+
+
+dl(
+
+"spot.xml",
+
+testo,
+
+"application/xml"
+
+);
+
+}
+
+
+if(tipo==="taranto"){
+
+const testo=
+
+"Cognome;Nome;Documento;Arrivo;Partenza\n"+
+
+dati.map(x=>
+
+[
+
+x.cognome,
+
+x.nome,
+
+x.documento,
+
+x.arrivo,
+
+x.partenza
+
+].join(";")
+
+).join("\n");
+
+
+dl(
+
+"tassa_soggiorno_taranto.csv",
+
+testo,
+
+"text/csv"
+
+);
+
+}
+
+}
+
+
+R();
+
+
+if("serviceWorker" in navigator){
+
+navigator.serviceWorker.register("sw.js");
+
+}
+
+</script>
+
+</body>
+</html>
