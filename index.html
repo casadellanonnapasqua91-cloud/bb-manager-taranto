@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#2f80ed">
+
 <title>B&B Manager Taranto</title>
 
+<!-- OCR -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-*{box-sizing:border-box}
-
 body{
   font-family:Arial,sans-serif;
   margin:0;
@@ -21,18 +21,16 @@ body{
 header{
   background:#2f80ed;
   color:white;
-  padding:28px 18px;
-  text-align:center;
+  padding:22px 18px;
 }
 
 header h1{
-  margin:0;
-  font-size:30px;
+  margin:0 0 8px;
 }
 
 main{
   padding:16px;
-  max-width:750px;
+  max-width:700px;
   margin:auto;
 }
 
@@ -44,17 +42,14 @@ main{
   box-shadow:0 2px 8px #0001;
 }
 
-h2{
-  margin-top:0;
-}
-
 input,select,button{
   width:100%;
-  padding:14px;
+  box-sizing:border-box;
+  padding:13px;
   margin:6px 0;
   border-radius:9px;
-  font-size:16px;
   border:1px solid #ccc;
+  font-size:16px;
 }
 
 button{
@@ -62,66 +57,36 @@ button{
   color:white;
   border:0;
   font-weight:bold;
-  cursor:pointer;
 }
 
 button:active{
-  transform:scale(.99);
-}
-
-button.secondary{
-  background:#555;
-}
-
-button.green{
-  background:#159957;
-}
-
-button.orange{
-  background:#e67e22;
-}
-
-#foto{
-  display:none;
+  opacity:.8;
 }
 
 #anteprima{
   width:100%;
-  max-height:500px;
-  object-fit:contain;
+  max-width:100%;
   margin-top:10px;
   border-radius:10px;
   display:none;
 }
 
 #statoOCR{
-  display:none;
   margin-top:10px;
-  padding:12px;
-  border-radius:9px;
+  padding:10px;
+  border-radius:8px;
   background:#eef4ff;
 }
 
-#lista{
-  margin-top:10px;
+textarea{
+  width:100%;
+  min-height:120px;
+  box-sizing:border-box;
 }
 
 .ospite{
-  padding:12px;
   border-bottom:1px solid #ddd;
-}
-
-.piccolo{
-  font-size:13px;
-  color:#666;
-}
-
-.errore{
-  background:#ffecec;
-  color:#a00;
-  padding:10px;
-  border-radius:8px;
-  margin-top:8px;
+  padding:10px 0;
 }
 </style>
 </head>
@@ -129,8 +94,8 @@ button.orange{
 <body>
 
 <header>
-  <h1>B&B Manager Taranto</h1>
-  <div>Gestione ospiti</div>
+<h1>B&B Manager Taranto</h1>
+<div>Gestione ospiti</div>
 </header>
 
 <main>
@@ -139,696 +104,683 @@ button.orange{
 
 <h2>Nuovo ospite</h2>
 
-<input id="cognome" type="text" placeholder="Cognome">
-<input id="nome" type="text" placeholder="Nome">
-<input id="documento" type="text" placeholder="Numero documento">
+<input
+ id="cognome"
+ type="text"
+ placeholder="Cognome">
 
-<select id="arrivo">
-  <option value="">Tipo documento</option>
-  <option value="Carta d'identità">Carta d'identità</option>
-  <option value="Passaporto">Passaporto</option>
-  <option value="Patente">Patente</option>
+<input
+ id="nome"
+ type="text"
+ placeholder="Nome">
+
+<input
+ id="documento"
+ type="text"
+ placeholder="Numero documento">
+
+<select id="tipoDocumento">
+<option value="">Tipo documento</option>
+<option value="CI">Carta d'identità</option>
+<option value="PP">Passaporto</option>
+<option value="PT">Permesso di soggiorno</option>
 </select>
 
-<select id="paese">
-  <option value="">Paese / cittadinanza</option>
-  <option value="ITA">Italia</option>
-  <option value="AUT">Austria</option>
-  <option value="BEL">Belgio</option>
-  <option value="FRA">Francia</option>
-  <option value="DEU">Germania</option>
-  <option value="GBR">Regno Unito</option>
-  <option value="ESP">Spagna</option>
-  <option value="USA">Stati Uniti</option>
-  <option value="Altro">Altro</option>
+<select id="nazionalita">
+<option value="">Nazionalità</option>
+<option value="ITA">Italia</option>
+<option value="FRA">Francia</option>
+<option value="DEU">Germania</option>
+<option value="ESP">Spagna</option>
+<option value="GBR">Regno Unito</option>
+<option value="USA">Stati Uniti</option>
+<option value="ALTRO">Altra</option>
 </select>
 
-<button class="green" onclick="salvaOspite()">
-  Salva ospite
+<label>Arrivo</label>
+<input id="arrivo" type="date">
+
+<label>Partenza</label>
+<input id="partenza" type="date">
+
+<button onclick="salvaOspite()">
+Salva ospite
 </button>
 
+<!-- FOTO DOCUMENTO -->
 <button onclick="document.getElementById('foto').click()">
-  📷 Foto documento
+📷 Foto documento
 </button>
 
 <input
-  id="foto"
-  type="file"
-  accept="image/*"
-  capture="environment"
-  onchange="gestisciFoto(event)"
->
+ id="foto"
+ type="file"
+ accept="image/*"
+ capture="environment"
+ style="display:none"
+ onchange="elaboraDocumento(event)">
 
 <img id="anteprima">
 
-<div id="statoOCR"></div>
+<div id="statoOCR">
+Pronto per fotografare il documento.
+</div>
 
 </div>
 
+<div class="card">
+
+<h2>Ospiti</h2>
+
+<div id="lista"></div>
+
+</div>
 
 <div class="card">
 
 <h2>Esportazioni</h2>
 
 <button onclick="esportaAlloggiati()">
-  TXT Alloggiati Web
+TXT Alloggiati Web
 </button>
 
 <button onclick="esportaSPOT()">
-  XML SPOT Puglia
+XML SPOT Puglia
 </button>
 
-<button onclick="esportaTaranto()">
-  CSV Tassa di soggiorno Taranto
+<button onclick="esportaTassa()">
+CSV Tassa di soggiorno Taranto
 </button>
-
-</div>
-
-
-<div class="card">
-
-<h2>Ospiti registrati</h2>
-
-<div id="lista"></div>
 
 </div>
 
 </main>
 
-
 <script>
 
-const CHIAVE = "bb_manager_taranto_ospiti";
+const STORAGE_KEY="bb_manager_taranto_ospiti";
+
+let ospiti=JSON.parse(
+  localStorage.getItem(STORAGE_KEY) || "[]"
+);
 
 
-function getOspiti(){
-  try{
-    return JSON.parse(localStorage.getItem(CHIAVE) || "[]");
-  }catch(e){
-    return [];
-  }
-}
-
-
-function setOspiti(lista){
-  localStorage.setItem(CHIAVE, JSON.stringify(lista));
-}
-
+/* =========================
+   VISUALIZZA OSPITI
+========================= */
 
 function mostraOspiti(){
 
-  const lista = getOspiti();
-  const box = document.getElementById("lista");
+  const lista=document.getElementById("lista");
 
-  if(!lista.length){
-    box.innerHTML = "<p>Nessun ospite.</p>";
+  if(!ospiti.length){
+    lista.innerHTML="<p>Nessun ospite.</p>";
     return;
   }
 
-  box.innerHTML = lista.map((x,i)=>`
+  lista.innerHTML=ospiti.map((x,i)=>`
+
     <div class="ospite">
-      <b>${escapeHtml(x.cognome)} ${escapeHtml(x.nome)}</b><br>
-      Documento: ${escapeHtml(x.documento)}<br>
-      Tipo: ${escapeHtml(x.tipo)}<br>
-      Cittadinanza: ${escapeHtml(x.paese)}
-      <div class="piccolo">
-        Arrivo: ${escapeHtml(x.data)}
-      </div>
-      <button class="secondary" onclick="eliminaOspite(${i})">
-        Elimina
-      </button>
+
+      <b>${escapeHtml(x.cognome)} ${escapeHtml(x.nome)}</b>
+
+      <br>
+      Documento: ${escapeHtml(x.documento)}
+
+      <br>
+      Arrivo: ${escapeHtml(x.arrivo || "")}
+
+      <br>
+      Partenza: ${escapeHtml(x.partenza || "")}
+
     </div>
+
   `).join("");
 }
 
 
-function escapeHtml(v){
-  return String(v || "")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;");
-}
-
+/* =========================
+   SALVA OSPITE
+========================= */
 
 function salvaOspite(){
 
-  const cognome = document.getElementById("cognome").value.trim();
-  const nome = document.getElementById("nome").value.trim();
-  const documento = document.getElementById("documento").value.trim();
-  const tipo = document.getElementById("arrivo").value;
-  const paese = document.getElementById("paese").value;
+  const cognome=document.getElementById("cognome").value.trim();
+  const nome=document.getElementById("nome").value.trim();
+  const documento=document.getElementById("documento").value.trim();
+  const tipoDocumento=document.getElementById("tipoDocumento").value;
+  const nazionalita=document.getElementById("nazionalita").value;
+  const arrivo=document.getElementById("arrivo").value;
+  const partenza=document.getElementById("partenza").value;
 
   if(!cognome || !nome || !documento){
-    alert("Inserisci Cognome, Nome e Numero documento.");
+
+    alert("Inserisci almeno Cognome, Nome e Numero documento.");
+
     return;
   }
 
-  const lista = getOspiti();
-
-  lista.push({
+  ospiti.push({
     cognome,
     nome,
     documento,
-    tipo,
-    paese,
-    data:new Date().toISOString().slice(0,10)
+    tipoDocumento,
+    nazionalita,
+    arrivo,
+    partenza
   });
 
-  setOspiti(lista);
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(ospiti)
+  );
 
   mostraOspiti();
 
   document.getElementById("cognome").value="";
   document.getElementById("nome").value="";
   document.getElementById("documento").value="";
-  document.getElementById("arrivo").value="";
-  document.getElementById("paese").value="";
 
   alert("Ospite salvato.");
 }
 
 
-function eliminaOspite(i){
+/* =========================
+   OCR DOCUMENTO
+========================= */
 
-  if(!confirm("Vuoi eliminare questo ospite?")){
-    return;
-  }
+async function elaboraDocumento(event){
 
-  const lista = getOspiti();
-  lista.splice(i,1);
-  setOspiti(lista);
-  mostraOspiti();
-}
+  const file=event.target.files[0];
 
+  if(!file) return;
 
-/* ============================
-   FOTO + OCR
-============================ */
+  const anteprima=document.getElementById("anteprima");
+  const stato=document.getElementById("statoOCR");
 
-async function gestisciFoto(event){
+  /* Mostra subito la fotografia */
 
-  const file = event.target.files[0];
+  const url=URL.createObjectURL(file);
 
-  if(!file){
-    return;
-  }
+  anteprima.src=url;
+  anteprima.style.display="block";
 
-  const anteprima = document.getElementById("anteprima");
-  const stato = document.getElementById("statoOCR");
-
-  const url = URL.createObjectURL(file);
-
-  anteprima.src = url;
-  anteprima.style.display = "block";
-
-  stato.style.display = "block";
-  stato.innerHTML = "📷 Foto acquisita.<br>🔎 Lettura del documento in corso...";
+  stato.innerHTML="📷 Foto acquisita.<br>🔎 Avvio riconoscimento testo...";
 
   try{
 
     /*
-      Il browser riceve la foto dalla fotocamera.
-      La visualizziamo anche nell'app.
+      Usiamo Tesseract OCR.
+      La CIE italiana contiene testo principalmente
+      in caratteri latini, quindi ita+eng aiuta
+      il riconoscimento.
     */
 
-    const risultato = await Tesseract.recognize(
-      file,
+    const worker=await Tesseract.createWorker(
       "ita+eng",
+      1,
       {
-        logger: function(m){
+        logger:function(m){
 
-          if(m.status === "recognizing text"){
-            const percentuale = Math.round((m.progress || 0) * 100);
+          if(m.status){
 
-            stato.innerHTML =
-              "🔎 Lettura documento: " +
-              percentuale +
-              "%";
+            const percent=
+              m.progress
+              ? Math.round(m.progress*100)
+              : "";
+
+            stato.innerHTML=
+              "🔎 "+m.status+
+              (percent!=="" ? " "+percent+"%" : "");
+
           }
 
         }
       }
     );
 
-    const testo = risultato.data.text || "";
+    const risultato=
+      await worker.recognize(file);
 
-    console.log("TESTO OCR:", testo);
+    const testo=
+      risultato.data.text || "";
 
-    estraiDatiDocumento(testo);
+    await worker.terminate();
 
-  }catch(err){
+    console.log("TESTO OCR:",testo);
 
-    console.error(err);
+    stato.innerHTML=
+      "✅ OCR completato.<br>"+
+      "Analizzo i dati del documento...";
 
-    stato.innerHTML =
-      '<div class="errore">' +
-      'OCR non riuscito. Puoi comunque compilare i dati manualmente.' +
-      '</div>';
+    estraiDatiCIE(testo);
+
+  }catch(errore){
+
+    console.error(errore);
+
+    stato.innerHTML=
+      "❌ Errore durante il riconoscimento OCR.<br>"+
+      "Prova a fotografare nuovamente il documento con buona luce.";
+
   }
+
 }
 
 
-/* ============================
+/* =========================
    ESTRAZIONE DATI CIE
-============================ */
+========================= */
 
-function estraiDatiDocumento(testo){
+function estraiDatiCIE(testo){
 
-  const stato = document.getElementById("statoOCR");
+  /*
+    Normalizziamo il testo.
+  */
 
-  let pulito = testo
+  let righe=testo
     .replace(/\r/g,"\n")
-    .replace(/[|]/g,"I");
-
-  const righe = pulito
     .split("\n")
     .map(x=>x.trim())
-    .filter(x=>x.length>0);
+    .filter(Boolean);
+
+  console.log("RIGHE OCR:",righe);
 
 
   /*
-    Numero CIE:
-    normalmente è composto da 2 lettere,
-    5 numeri e 2 lettere.
-    Esempio:
+    NUMERO DOCUMENTO
+
+    Una CIE italiana normalmente contiene
+    una sequenza alfanumerica simile a:
+
     CA07404HJ
+
+    Cerchiamo sequenze di 9 caratteri.
   */
 
-  const regexDocumento =
-    /\b[A-Z]{2}[0-9]{5}[A-Z]{2}\b/i;
+  let documento="";
 
-  let documento = pulito.match(regexDocumento);
+  const testoPulito=
+    testo
+      .toUpperCase()
+      .replace(/[^A-Z0-9\n ]/g," ");
 
-  if(documento){
+  const candidati=
+    testoPulito.match(
+      /\b[A-Z]{2}[A-Z0-9]{7}\b/g
+    ) || [];
 
-    document.getElementById("documento").value =
-      documento[0].toUpperCase();
+  if(candidati.length){
 
-  }else{
+    documento=candidati[0];
 
-    /*
-      Secondo tentativo:
-      cerchiamo stringhe alfanumeriche simili
-    */
-
-    const candidati = pulito.match(
-      /\b[A-Z]{1,3}[0-9]{4,7}[A-Z]{1,3}\b/gi
-    );
-
-    if(candidati && candidati.length){
-
-      document.getElementById("documento").value =
-        candidati[0].toUpperCase();
-    }
   }
 
 
   /*
-    Cerchiamo le parole chiave della CIE.
+    Se OCR ha letto male qualche carattere,
+    cerchiamo anche stringhe alfanumeriche.
   */
 
-  let indiceCognome = -1;
-  let indiceNome = -1;
+  if(!documento){
+
+    const alternativi=
+      testoPulito.match(
+        /\b[A-Z0-9]{8,10}\b/g
+      ) || [];
+
+    for(const c of alternativi){
+
+      if(
+        /[A-Z]/.test(c) &&
+        /\d/.test(c)
+      ){
+
+        documento=c;
+        break;
+
+      }
+
+    }
+
+  }
+
+
+  /*
+    COGNOME E NOME
+
+    Cerchiamo prima le parole vicine
+    alle etichette COGNOME e NOME.
+  */
+
+  let cognome="";
+  let nome="";
 
   for(let i=0;i<righe.length;i++){
 
-    const r = righe[i].toUpperCase();
+    const r=
+      righe[i]
+        .toUpperCase()
+        .replace(/\s+/g," ");
 
     if(
-      r.includes("COGNOME") ||
-      r.includes("SURNAME")
+      !cognome &&
+      r.includes("COGNOME")
     ){
-      indiceCognome = i;
+
+      const dopo=
+        righe[i]
+          .replace(/.*COGNOME\s*[:\-]?\s*/i,"")
+          .trim();
+
+      if(
+        dopo &&
+        !/COGNOME/i.test(dopo)
+      ){
+
+        cognome=pulisciNome(dopo);
+
+      }else if(righe[i+1]){
+
+        cognome=
+          pulisciNome(righe[i+1]);
+
+      }
+
     }
+
+  }
+
+
+  /*
+    Seconda ricerca per NOME.
+  */
+
+  for(let i=0;i<righe.length;i++){
+
+    const r=
+      righe[i]
+        .toUpperCase()
+        .replace(/\s+/g," ");
 
     if(
-      r.includes("NOME") ||
-      r.includes("GIVEN")
+      !nome &&
+      /\bNOME\b/.test(r)
     ){
-      indiceNome = i;
-    }
-  }
 
-
-  /*
-    Estrazione cognome
-  */
-
-  let cognome = "";
-
-  if(indiceCognome >= 0){
-
-    const stessaRiga =
-      pulisciValore(righe[indiceCognome]);
-
-    if(stessaRiga){
-      cognome = stessaRiga;
-    }else{
-
-      for(
-        let i=indiceCognome+1;
-        i<Math.min(righe.length,indiceCognome+4);
-        i++
-      ){
-
-        const v = pulisciValore(righe[i]);
-
-        if(v && !contieneParolaTecnica(v)){
-          cognome = v;
-          break;
-        }
-      }
-    }
-  }
-
-
-  /*
-    Estrazione nome
-  */
-
-  let nome = "";
-
-  if(indiceNome >= 0){
-
-    const stessaRiga =
-      pulisciValore(righe[indiceNome]);
-
-    if(stessaRiga){
-      nome = stessaRiga;
-    }else{
-
-      for(
-        let i=indiceNome+1;
-        i<Math.min(righe.length,indiceNome+4);
-        i++
-      ){
-
-        const v = pulisciValore(righe[i]);
-
-        if(v && !contieneParolaTecnica(v)){
-          nome = v;
-          break;
-        }
-      }
-    }
-  }
-
-
-  /*
-    Se l'OCR legge male le etichette,
-    cerchiamo alcune strutture tipiche della CIE.
-  */
-
-  if(!cognome || !nome){
-
-    const parole = pulito
-      .split(/\s+/)
-      .map(x=>x.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ']/g,""))
-      .filter(x=>x.length>=2);
-
-    /*
-      Cerchiamo "COGNOME / SURNAME"
-      e prendiamo una parola successiva.
-    */
-
-    for(let i=0;i<parole.length;i++){
-
-      const p = parole[i].toUpperCase();
+      const dopo=
+        righe[i]
+          .replace(/.*\bNOME\b\s*[:\-]?\s*/i,"")
+          .trim();
 
       if(
-        !cognome &&
-        (p.includes("COGNOM") || p==="SURNAME")
+        dopo &&
+        !/NOME/i.test(dopo)
       ){
 
-        if(parole[i+1]){
-          cognome = parole[i+1];
-        }
+        nome=pulisciNome(dopo);
+
+      }else if(righe[i+1]){
+
+        nome=
+          pulisciNome(righe[i+1]);
+
       }
 
-      if(
-        !nome &&
-        (p==="NOME" || p==="NAME")
-      ){
-
-        if(parole[i+1]){
-          nome = parole[i+1];
-        }
-      }
     }
+
   }
 
 
   /*
-    Pulizia finale.
+    Metodo aggiuntivo:
+    se l'OCR restituisce una riga del tipo:
+
+    COGNOME / SURNAME
+    COGNOME
+    NOME / NAME
+    DOMENICO
+
+    prendiamo le righe successive.
   */
 
-  cognome = pulisciPersona(cognome);
-  nome = pulisciPersona(nome);
+  if(!cognome){
 
+    for(let i=0;i<righe.length;i++){
+
+      if(
+        /COGNOME|SURNAME/i.test(righe[i])
+        &&
+        righe[i+1]
+      ){
+
+        const possibile=
+          pulisciNome(righe[i+1]);
+
+        if(
+          possibile &&
+          possibile.length>1
+        ){
+
+          cognome=possibile;
+          break;
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  if(!nome){
+
+    for(let i=0;i<righe.length;i++){
+
+      if(
+        /\bNOME\b|\bNAME\b/i.test(righe[i])
+        &&
+        righe[i+1]
+      ){
+
+        const possibile=
+          pulisciNome(righe[i+1]);
+
+        if(
+          possibile &&
+          possibile.length>1
+        ){
+
+          nome=possibile;
+          break;
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  /*
+    Inseriamo i risultati nei campi.
+  */
 
   if(cognome){
-    document.getElementById("cognome").value = cognome;
+
+    document.getElementById("cognome").value=
+      cognome;
+
   }
 
   if(nome){
-    document.getElementById("nome").value = nome;
+
+    document.getElementById("nome").value=
+      nome;
+
+  }
+
+  if(documento){
+
+    document.getElementById("documento").value=
+      documento;
+
   }
 
 
-  document.getElementById("arrivo").value =
-    "Carta d'identità";
-
-  document.getElementById("paese").value =
-    "ITA";
-
+  /*
+    Tipo documento.
+  */
 
   if(
-    document.getElementById("cognome").value &&
-    document.getElementById("nome").value &&
-    document.getElementById("documento").value
+    document.getElementById("tipoDocumento")
   ){
 
-    stato.innerHTML =
-      "✅ Documento letto.<br>" +
-      "Cognome, Nome e Numero documento compilati automaticamente.";
+    document.getElementById("tipoDocumento").value=
+      "CI";
+
+  }
+
+
+  const stato=
+    document.getElementById("statoOCR");
+
+
+  if(cognome || nome || documento){
+
+    stato.innerHTML=
+      "✅ Dati riconosciuti.<br>"+
+      "Controlla i campi prima di salvare.";
 
   }else{
 
-    stato.innerHTML =
-      "⚠️ Foto acquisita e OCR terminato.<br>" +
-      "Alcuni dati non sono stati riconosciuti: controllali e completali manualmente.";
+    stato.innerHTML=
+      "⚠️ Foto letta, ma non sono riuscito "+
+      "a riconoscere automaticamente i dati.<br>"+
+      "Prova una foto più ravvicinata e luminosa.";
+
   }
 
 }
 
 
-function pulisciValore(v){
+/* =========================
+   PULIZIA NOMI
+========================= */
 
-  if(!v){
-    return "";
-  }
+function pulisciNome(testo){
 
-  v = v
-    .replace(/COGNOME/ig,"")
-    .replace(/SURNAME/ig,"")
-    .replace(/NOME/ig,"")
-    .replace(/NAME/ig,"")
-    .replace(/COGNOM/ig,"")
-    .replace(/GIVEN/ig,"")
-    .replace(/[:\-]/g," ")
-    .trim();
-
-  return v;
-}
-
-
-function pulisciPersona(v){
-
-  if(!v){
-    return "";
-  }
-
-  v = v
-    .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' ]/g," ")
+  return testo
+    .replace(
+      /[^A-Za-zÀ-ÖØ-öø-ÿ' -]/g,
+      ""
+    )
     .replace(/\s+/g," ")
-    .trim();
+    .trim()
+    .toUpperCase();
 
-  return v;
 }
 
 
-function contieneParolaTecnica(v){
+/* =========================
+   ESCAPE HTML
+========================= */
 
-  const x = v.toUpperCase();
+function escapeHtml(testo){
 
-  return [
-    "ITALIA",
-    "ITALIAN",
-    "REPUBBLICA",
-    "MINISTERO",
-    "INTERNO",
-    "IDENTITY",
-    "CARD",
-    "CARTA",
-    "COMUNE",
-    "NATIONALITY",
-    "CITTADINANZA",
-    "SESSO",
-    "SEX",
-    "EMISSIONE",
-    "SCADENZA",
-    "VALID",
-    "FIRMA"
-  ].some(p=>x.includes(p));
-}
-
-
-/* ============================
-   DOWNLOAD FILE
-============================ */
-
-function scarica(nome, contenuto, tipo){
-
-  const blob = new Blob(
-    [contenuto],
-    {type:tipo}
-  );
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-
-  a.href = url;
-  a.download = nome;
-
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  URL.revokeObjectURL(url);
-}
-
-
-/* ============================
-   ALLOGGIATI WEB
-============================ */
-
-function esportaAlloggiati(){
-
-  const lista = getOspiti();
-
-  if(!lista.length){
-    alert("Nessun ospite registrato.");
-    return;
-  }
-
-  /*
-    Questo file contiene i dati disponibili.
-    Il formato definitivo Alloggiati Web
-    deve rispettare la specifica prevista dal portale.
-  */
-
-  const righe = lista.map(x=>[
-    x.cognome,
-    x.nome,
-    x.documento,
-    x.tipo,
-    x.paese,
-    x.data
-  ].join(";"));
-
-  scarica(
-    "alloggiati_web.txt",
-    righe.join("\n"),
-    "text/plain;charset=utf-8"
-  );
-}
-
-
-/* ============================
-   SPOT PUGLIA
-============================ */
-
-function esportaSPOT(){
-
-  const lista = getOspiti();
-
-  if(!lista.length){
-    alert("Nessun ospite registrato.");
-    return;
-  }
-
-  const xml =
-`<?xml version="1.0" encoding="UTF-8"?>
-<ospiti>
-${lista.map(x=>`
-  <ospite>
-    <cognome>${xmlEscape(x.cognome)}</cognome>
-    <nome>${xmlEscape(x.nome)}</nome>
-    <documento>${xmlEscape(x.documento)}</documento>
-    <tipoDocumento>${xmlEscape(x.tipo)}</tipoDocumento>
-    <cittadinanza>${xmlEscape(x.paese)}</cittadinanza>
-    <arrivo>${xmlEscape(x.data)}</arrivo>
-  </ospite>`).join("")}
-</ospiti>`;
-
-  scarica(
-    "spot_puglia.xml",
-    xml,
-    "application/xml;charset=utf-8"
-  );
-}
-
-
-/* ============================
-   TASSA DI SOGGIORNO
-============================ */
-
-function esportaTaranto(){
-
-  const lista = getOspiti();
-
-  if(!lista.length){
-    alert("Nessun ospite registrato.");
-    return;
-  }
-
-  const intestazione =
-    "Cognome;Nome;Documento;Arrivo;Partenza\n";
-
-  const righe = lista.map(x=>[
-    x.cognome,
-    x.nome,
-    x.documento,
-    x.data,
-    ""
-  ].join(";"));
-
-  scarica(
-    "tassa_soggiorno_taranto.csv",
-    intestazione + righe.join("\n"),
-    "text/csv;charset=utf-8"
-  );
-}
-
-
-function xmlEscape(v){
-
-  return String(v || "")
+  return String(testo || "")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
-    .replace(/'/g,"&apos;");
+    .replace(/'/g,"&#039;");
+
 }
 
 
-/* Avvio */
+/* =========================
+   DOWNLOAD FILE
+========================= */
 
-mostraOspiti();
+function scarica(nome,contenuto,tipo){
 
-</script>
+  const blob=
+    new Blob(
+      [contenuto],
+      {type:tipo}
+    );
 
-</body>
-</html>
+  const url=
+    URL.createObjectURL(blob);
+
+  const a=
+    document.createElement("a");
+
+  a.href=url;
+  a.download=nome;
+
+  document.body.appendChild(a);
+
+  a.click();
+
+  a.remove();
+
+  URL.revokeObjectURL(url);
+
+}
+
+
+/* =========================
+   ALLOGGIATI WEB
+========================= */
+
+function esportaAlloggiati(){
+
+  if(!ospiti.length){
+
+    alert("Nessun ospite.");
+    return;
+
+  }
+
+  const righe=
+    ospiti.map(x=>
+      [
+        x.cognome,
+        x.nome,
+        x.documento,
+        x.arrivo,
+        x.partenza
+      ].join(";")
+    );
+
+  scarica(
+    "alloggiati_web.txt",
+    righe.join("\n"),
+    "text/plain"
+  );
+
+}
+
+
+/* =========================
+   SPOT
+========================= */
+
+function esportaSPOT(){
+
+  let xml=
+`<?xml version="1.0" encoding="UTF-8"?>
+<ospiti>`;
+
+  ospiti.forEach(x=>{
+
+    xml+=`
+<ospite>
+<cognome>${escapeXml(x.cognome)}</cognome>
+<nome>${escapeXml(x.nome)}</nome>
+<documento>${escapeXml(x.documento)}</documento>
+<arrivo>${escapeXml(x.arrivo)}</arrivo>
+<partenza>${escapeXml(x.parten
