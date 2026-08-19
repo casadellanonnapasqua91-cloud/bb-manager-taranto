@@ -11,14 +11,20 @@
 <style>
 body{
   font-family:Arial,sans-serif;
+  margin:0;
   padding:20px;
   background:#f4f6f8;
+  color:#222;
+}
+
+h1{
+  margin-top:0;
 }
 
 button{
   width:100%;
   padding:16px;
-  margin:10px 0;
+  margin:8px 0;
   font-size:18px;
   border:0;
   border-radius:10px;
@@ -27,22 +33,45 @@ button{
   font-weight:bold;
 }
 
-img{
+input{
   width:100%;
-  margin-top:10px;
+  box-sizing:border-box;
+  padding:13px;
+  margin:6px 0;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:16px;
+}
+
+.card{
+  background:white;
+  padding:16px;
+  margin-top:15px;
+  border-radius:12px;
+}
+
+#foto{
+  display:none;
+}
+
+#immagine{
+  width:100%;
+  margin-top:15px;
+  border-radius:10px;
   display:none;
 }
 
 #stato{
-  background:white;
+  background:#eef4ff;
   padding:15px;
   border-radius:10px;
-  margin-top:10px;
+  margin-top:15px;
 }
 
 pre{
   white-space:pre-wrap;
   word-break:break-word;
+  font-size:14px;
 }
 </style>
 </head>
@@ -60,14 +89,35 @@ pre{
   type="file"
   accept="image/*"
   capture="environment"
-  style="display:none"
   onchange="leggiFoto(event)"
 >
 
 <img id="immagine">
 
 <div id="stato">
-Pronto.
+Pronto per la fotografia.
+</div>
+
+<div class="card">
+
+<h2>👤 Dati riconosciuti</h2>
+
+<input id="cognome" placeholder="Cognome" readonly>
+
+<input id="nome" placeholder="Nome" readonly>
+
+<input id="documento" placeholder="Numero documento" readonly>
+
+</div>
+
+<div class="card">
+
+<h2>📝 Testo OCR</h2>
+
+<pre id="testoOCR">
+Nessun testo ancora riconosciuto.
+</pre>
+
 </div>
 
 <script>
@@ -80,67 +130,399 @@ async function leggiFoto(event){
     return;
   }
 
-  const immagine=document.getElementById("immagine");
-  const stato=document.getElementById("stato");
+  const immagine=
+    document.getElementById("immagine");
 
-  immagine.src=URL.createObjectURL(file);
+  const stato=
+    document.getElementById("stato");
+
+  const testoOCR=
+    document.getElementById("testoOCR");
+
+  immagine.src=
+    URL.createObjectURL(file);
+
   immagine.style.display="block";
 
-  stato.innerHTML="📷 Foto acquisita.<br>⏳ Avvio OCR...";
+  stato.innerHTML=
+    "📷 Foto acquisita.<br>⏳ Preparazione OCR...";
+
+  document.getElementById("cognome").value="";
+  document.getElementById("nome").value="";
+  document.getElementById("documento").value="";
 
   try{
 
-    const worker=await Tesseract.createWorker(
-      "ita+eng",
-      1,
-      {
-        logger:function(m){
+    /*
+      Creiamo un'immagine più grande.
+      Questo aiuta il riconoscimento della CIE.
+    */
 
-          console.log(m);
+    const immaginePreparata=
+      await preparaImmagine(file);
 
-          if(m.status){
+    stato.innerHTML=
+      "🔎 Avvio OCR...<br>Attendi la fine del riconoscimento.";
 
-            let p="";
+    const worker=
+      await Tesseract.createWorker(
+        "ita+eng",
+        1,
+        {
+          logger:function(m){
 
-            if(m.progress){
-              p=" "+Math.round(m.progress*100)+"%";
+            console.log(m);
+
+            if(m.status){
+
+              let percent="";
+
+              if(typeof m.progress==="number"){
+
+                percent=
+                  " "+Math.round(m.progress*100)+"%";
+
+              }
+
+              stato.innerHTML=
+                "🔎 "+m.status+
+                percent;
+
             }
 
-            stato.innerHTML=
-              "🔎 "+m.status+p;
-
           }
-
         }
-      }
-    );
+      );
 
     const risultato=
-      await worker.recognize(file);
+      await worker.recognize(
+        immaginePreparata
+      );
 
     const testo=
       risultato.data.text || "";
 
     await worker.terminate();
 
-    console.log("OCR:",testo);
+    console.log("TESTO OCR:",testo);
+
+    testoOCR.textContent=
+      testo || "Nessun testo riconosciuto.";
 
     stato.innerHTML=
-      "<b>✅ OCR TERMINATO</b><br><br>" +
-      "<pre>"+escapeHtml(testo)+"</pre>";
+      "✅ OCR terminato.<br>Analizzo i dati...";
+
+    estraiDati(testo);
 
   }catch(error){
 
     console.error(error);
 
     stato.innerHTML=
-      "<b>❌ ERRORE OCR</b><br><br>"+
-      escapeHtml(error.toString());
+      "❌ Errore OCR:<br>"+
+      escapeHtml(error.message || error);
 
   }
 
 }
 
+
+/*
+  PREPARAZIONE FOTO
+*/
+
+function preparaImmagine(file){
+
+  return new Promise((resolve,reject)=>{
+
+    const img=new Image();
+
+    img.onload=function(){
+
+      const canvas=
+        document.createElement("canvas");
+
+      /*
+        Ingrandimento massimo controllato.
+      */
+
+      const scala=
+        Math.min(
+          2.5,
+          2400 / img.width
+        );
+
+      canvas.width=
+        Math.round(img.width*scala);
+
+      canvas.height=
+        Math.round(img.height*scala);
+
+      const ctx=
+        canvas.getContext("2d");
+
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      canvas.toBlob(
+        function(blob){
+
+          if(blob){
+            resolve(blob);
+          }else{
+            reject(
+              new Error("Impossibile preparare la foto")
+            );
+          }
+
+        },
+        "image/jpeg",
+        0.95
+      );
+
+    };
+
+    img.onerror=function(){
+
+      reject(
+        new Error("Impossibile leggere la fotografia")
+      );
+
+    };
+
+    img.src=
+      URL.createObjectURL(file);
+
+  });
+
+}
+
+
+/*
+  ESTRAZIONE DATI
+*/
+
+function estraiDati(testo){
+
+  const righe=
+    testo
+      .replace(/\r/g,"\n")
+      .split("\n")
+      .map(r=>r.trim())
+      .filter(r=>r.length>0);
+
+  console.log("RIGHE:",righe);
+
+  let cognome="";
+  let nome="";
+  let documento="";
+
+
+  /*
+    NUMERO CIE
+
+    Formato tipico:
+    CA07404HJ
+
+    Cerchiamo sequenze alfanumeriche
+    di 9 caratteri.
+  */
+
+  const pulito=
+    testo
+      .toUpperCase()
+      .replace(/[^A-Z0-9\s]/g," ");
+
+  const candidati=
+    pulito.match(
+      /\b[A-Z0-9]{9}\b/g
+    ) || [];
+
+  /*
+    Preferiamo candidati che contengono
+    sia lettere che numeri.
+  */
+
+  for(const candidato of candidati){
+
+    if(
+      /[A-Z]/.test(candidato) &&
+      /\d/.test(candidato)
+    ){
+
+      documento=candidato;
+      break;
+
+    }
+
+  }
+
+
+  /*
+    CERCA COGNOME
+  */
+
+  for(let i=0;i<righe.length;i++){
+
+    const r=
+      righe[i].toUpperCase();
+
+    if(
+      /COGNOME|SURNAME/.test(r)
+    ){
+
+      const stesso=
+        pulisciNome(
+          r
+            .replace(/.*COGNOME/,"")
+            .replace(/.*SURNAME/,"")
+        );
+
+      if(
+        stesso &&
+        stesso.length>2
+      ){
+
+        cognome=stesso;
+        break;
+
+      }
+
+      if(righe[i+1]){
+
+        const prossimo=
+          pulisciNome(
+            righe[i+1]
+          );
+
+        if(
+          prossimo &&
+          prossimo.length>2
+        ){
+
+          cognome=prossimo;
+          break;
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  /*
+    CERCA NOME
+  */
+
+  for(let i=0;i<righe.length;i++){
+
+    const r=
+      righe[i].toUpperCase();
+
+    if(
+      /\bNOME\b|\bNAME\b/.test(r)
+    ){
+
+      const stesso=
+        pulisciNome(
+          r
+            .replace(/.*NOME/,"")
+            .replace(/.*NAME/,"")
+        );
+
+      if(
+        stesso &&
+        stesso.length>2
+      ){
+
+        nome=stesso;
+        break;
+
+      }
+
+      if(righe[i+1]){
+
+        const prossimo=
+          pulisciNome(
+            righe[i+1]
+          );
+
+        if(
+          prossimo &&
+          prossimo.length>2
+        ){
+
+          nome=prossimo;
+          break;
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  /*
+    COMPILA I CAMPI
+  */
+
+  document.getElementById("cognome").value=
+    cognome;
+
+  document.getElementById("nome").value=
+    nome;
+
+  document.getElementById("documento").value=
+    documento;
+
+
+  if(cognome || nome || documento){
+
+    document.getElementById("stato").innerHTML=
+      "✅ Dati trovati.<br>"+
+      "Controlla i campi qui sotto.";
+
+  }else{
+
+    document.getElementById("stato").innerHTML=
+      "⚠️ OCR terminato, ma i dati non sono stati identificati.<br>"+
+      "Guarda il testo OCR qui sotto.";
+
+  }
+
+}
+
+
+/*
+  PULIZIA TESTO
+*/
+
+function pulisciNome(testo){
+
+  return String(testo || "")
+    .replace(
+      /[^A-Za-zÀ-ÖØ-öø-ÿ' -]/g,
+      ""
+    )
+    .replace(/\s+/g," ")
+    .trim()
+    .toUpperCase();
+
+}
+
+
+/*
+  SICUREZZA HTML
+*/
 
 function escapeHtml(testo){
 
