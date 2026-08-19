@@ -339,15 +339,17 @@ async function elaboraDocumento(event){
       }
     );
 
-    const risultato=
-      await worker.recognize(file);
-
     const testo=
       risultato.data.text || "";
 
-    await worker.terminate();
+document.getElementById("statoOCR").innerHTML =
+  "🔎 Testo riconosciuto:<br><pre>" +
+  testo.replace(/</g,"&lt;") +
+  "</pre>";
 
-    console.log("TESTO OCR:",testo);
+await worker.terminate();
+
+console.log("TESTO OCR:",testo);
 
     stato.innerHTML=
       "✅ OCR completato.<br>"+
