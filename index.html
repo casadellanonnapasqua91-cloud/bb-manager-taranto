@@ -1,61 +1,144 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
-<head> <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#2f80ed">
-<link rel="manifest" href="manifest.json">
+
 <title>B&B Manager Taranto</title>
 
+<!-- OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <style>
-body{
-  font-family:Arial,sans-serif;
-  margin:0;
-  background:#f4f6f8;
-  color:#222
+* {
+    box-sizing: border-box;
 }
-header{
-  background:#2f80ed;
-  color:white;
-  padding:18px
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #222;
 }
-main{
-  padding:16px;
-  max-width:700px;
-  margin:auto
+
+header {
+    background: #2f80ed;
+    color: white;
+    padding: 22px 16px;
+    text-align: center;
 }
-.card{
-  background:white;
-  padding:16px;
-  margin:12px 0;
-  border-radius:14px;
-  box-shadow:0 2px 8px #0001
+
+header h1 {
+    margin: 0;
+    font-size: 28px;
 }
-input,button{
-  width:100%;
-  box-sizing:border-box;
-  padding:12px;
-  margin:6px 0;
-  border-radius:8px;
-  border:1px solid #ccc
+
+header p {
+    margin: 8px 0 0;
 }
-button{
-  background:#2f80ed;
-  color:white;
-  border:0;
-  font-weight:bold
+
+main {
+    max-width: 760px;
+    margin: auto;
+    padding: 16px;
 }
-#anteprima{
-  max-width:100%;
-  margin-top:10px;
-  border-radius:10px;
-  display:none
+
+.card {
+    background: white;
+    padding: 18px;
+    margin: 12px 0;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px #0001;
 }
-.msg{
-  margin-top:8px;
-  padding:8px;
-  border-radius:8px;
-  background:#eef4ff
+
+h2 {
+    margin-top: 0;
+}
+
+input,
+select,
+button {
+    width: 100%;
+    padding: 13px;
+    margin: 6px 0;
+    border-radius: 9px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+button {
+    background: #2f80ed;
+    color: white;
+    border: 0;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button.secondary {
+    background: #555;
+}
+
+button.green {
+    background: #219653;
+}
+
+button.orange {
+    background: #f2994a;
+}
+
+button.red {
+    background: #eb5757;
+}
+
+#anteprima {
+    width: 100%;
+    max-height: 350px;
+    object-fit: contain;
+    margin-top: 10px;
+    border-radius: 10px;
+    display: none;
+}
+
+#statoOCR {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    background: #eef4ff;
+}
+
+#testoOCR {
+    width: 100%;
+    min-height: 120px;
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+}
+
+.ospite {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 8px 0;
+    background: #fafafa;
+}
+
+.small {
+    font-size: 13px;
+    color: #666;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+@media (max-width: 600px) {
+    .row {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 </head>
@@ -63,8 +146,8 @@ button{
 <body>
 
 <header>
-<h1>B&B Manager Taranto</h1>
-<div>Gestione ospiti</div>
+    <h1>B&B Manager Taranto</h1>
+    <p>Gestione ospiti</p>
 </header>
 
 <main>
@@ -73,35 +156,93 @@ button{
 
 <h2>Nuovo ospite</h2>
 
-<input id="cognome" placeholder="Cognome">
+<input
+    id="cognome"
+    type="text"
+    placeholder="Cognome"
+>
 
-<input id="nome" placeholder="Nome">
+<input
+    id="nome"
+    type="text"
+    placeholder="Nome"
+>
 
-<input id="documento" placeholder="Numero documento">
+<input
+    id="documento"
+    type="text"
+    placeholder="Numero documento"
+>
 
-<input id="arrivo" type="date">
+<div class="row">
 
-<input id="partenza" type="date">
+<input
+    id="arrivo"
+    type="date"
+>
 
-<button onclick="salva()">
-💾 Salva ospite
-</button>
+<input
+    id="partenza"
+    type="date"
+>
 
-<button onclick="apriFotocamera()">
-📷 Fotografa carta d'identità
+</div>
+
+<select id="tipoDocumento">
+    <option value="">Tipo documento</option>
+    <option value="CARTA_IDENTITA">Carta d'identità</option>
+    <option value="PASSAPORTO">Passaporto</option>
+    <option value="PATENTE">Patente</option>
+    <option value="ALTRO">Altro</option>
+</select>
+
+<select id="nazionalita">
+    <option value="">Nazionalità</option>
+    <option value="ITA">Italia</option>
+    <option value="FRA">Francia</option>
+    <option value="DEU">Germania</option>
+    <option value="ESP">Spagna</option>
+    <option value="GBR">Regno Unito</option>
+    <option value="USA">Stati Uniti</option>
+    <option value="ALTRO">Altra</option>
+</select>
+
+<button
+    type="button"
+    onclick="apriFotocamera()"
+>
+    📷 Fotografa documento
 </button>
 
 <input
-id="foto"
-type="file"
-accept="image/*"
-capture="environment"
-hidden
-onchange="gestisciFoto(this.files[0])">
+    id="foto"
+    type="file"
+    accept="image/*"
+    capture="environment"
+    style="display:none"
+    onchange="leggiDocumento(event)"
+>
 
 <img id="anteprima">
 
-<div id="fotoMsg" class="msg" style="display:none"></div>
+<div id="statoOCR">
+    🔎 <b>Sto leggendo il documento...</b>
+    <br>
+    <span id="percentualeOCR">Attendere qualche secondo.</span>
+</div>
+
+<textarea
+    id="testoOCR"
+    placeholder="Testo riconosciuto"
+></textarea>
+
+<button
+    type="button"
+    class="green"
+    onclick="salvaOspite()"
+>
+    Salva ospite
+</button>
 
 </div>
 
@@ -110,16 +251,25 @@ onchange="gestisciFoto(this.files[0])">
 
 <h2>Esportazioni</h2>
 
-<button onclick="exp('alloggiati')">
-📄 TXT Alloggiati Web
+<button
+    type="button"
+    onclick="esportaAlloggiati()"
+>
+    📄 Alloggiati Web
 </button>
 
-<button onclick="exp('spot')">
-📄 XML SPOT Puglia
+<button
+    type="button"
+    onclick="esportaSPOT()"
+>
+    📄 XML SPOT Puglia
 </button>
 
-<button onclick="exp('taranto')">
-📄 File Tassa di soggiorno Taranto
+<button
+    type="button"
+    onclick="esportaTassa()"
+>
+    📄 Tassa di soggiorno Taranto
 </button>
 
 </div>
@@ -127,7 +277,7 @@ onchange="gestisciFoto(this.files[0])">
 
 <div class="card">
 
-<h2>Ospiti salvati</h2>
+<h2>Ospiti registrati</h2>
 
 <div id="lista"></div>
 
@@ -138,307 +288,902 @@ onchange="gestisciFoto(this.files[0])">
 
 <script>
 
-const K="bbm";
+const CHIAVE = "bb_manager_taranto_ospiti";
+
+let fotoCorrente = null;
 
 
-function A(){
+/* =========================
+   AVVIO
+========================= */
 
-return JSON.parse(
-localStorage.getItem(K)||"[]"
-);
+document.addEventListener("DOMContentLoaded", function() {
 
-}
+    const oggi = new Date();
+
+    const data =
+        oggi.getFullYear() +
+        "-" +
+        String(oggi.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(oggi.getDate()).padStart(2, "0");
+
+    document.getElementById("arrivo").value = data;
+
+    mostraOspiti();
+
+});
 
 
-function R(){
+/* =========================
+   FOTOCAMERA
+========================= */
 
-const dati=A();
+function apriFotocamera() {
 
-document.getElementById("lista").innerHTML=
-
-dati.length ?
-
-dati.map(x=>`
-
-<p>
-
-<b>${escapeHtml(x.cognome)} ${escapeHtml(x.nome)}</b>
-
-<br>
-
-Documento: ${escapeHtml(x.documento||"")}
-
-<br>
-
-${x.arrivo||""} → ${x.partenza||""}
-
-</p>
-
-`).join("")
-
-:
-
-"Nessun ospite salvato.";
+    document.getElementById("foto").click();
 
 }
 
 
-function escapeHtml(t){
+/* =========================
+   FOTO + OCR
+========================= */
 
-return String(t)
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;");
+async function leggiDocumento(event) {
 
-}
+    const file = event.target.files[0];
 
+    if (!file) {
+        return;
+    }
 
-function salva(){
+    fotoCorrente = file;
 
-const x={
+    /* Anteprima */
 
-cognome:document.getElementById("cognome").value.trim(),
+    const immagine =
+        document.getElementById("anteprima");
 
-nome:document.getElementById("nome").value.trim(),
+    immagine.src =
+        URL.createObjectURL(file);
 
-documento:document.getElementById("documento").value.trim(),
-
-arrivo:document.getElementById("arrivo").value,
-
-partenza:document.getElementById("partenza").value
-
-};
-
-if(!x.cognome || !x.nome){
-
-alert("Inserisci almeno nome e cognome");
-
-return;
-
-}
-
-const dati=A();
-
-dati.push(x);
-
-localStorage.setItem(K,JSON.stringify(dati));
-
-R();
-
-alert("Ospite salvato");
-
-}
+    immagine.style.display = "block";
 
 
-function apriFotocamera(){
+    /*
+       Proviamo anche a scaricare una copia
+       della fotografia.
+    */
 
-document.getElementById("foto").click();
-
-}
-
-
-function gestisciFoto(file){
-
-if(!file)return;
+    salvaFotoSulTelefono(file);
 
 
-const url=URL.createObjectURL(file);
+    /* Mostra stato OCR */
 
-const img=document.getElementById("anteprima");
+    document.getElementById("statoOCR").style.display =
+        "block";
 
-img.src=url;
+    document.getElementById("testoOCR").style.display =
+        "none";
 
-img.style.display="block";
-
-
-const msg=document.getElementById("fotoMsg");
-
-msg.style.display="block";
-
-msg.innerHTML=
-
-"📷 Foto acquisita.<br><br>"+
-
-"Puoi salvarla sul telefono con il pulsante qui sotto.<br><br>"+
-
-"<a id='salvaFoto' href='"+url+"' download='carta_identita.jpg'>"+
-
-"📥 Salva foto documento"+
-
-"</a>";
+    document.getElementById("percentualeOCR").innerText =
+        "Avvio lettura...";
 
 
-/*
- OCR:
+    try {
 
-Questa versione prepara la fotografia del documento.
+        const risultato =
+            await Tesseract.recognize(
+                file,
+                "ita",
+                {
+                    logger: function(info) {
 
-La lettura automatica OCR della CIE richiede
-un motore OCR integrato nell'applicazione.
+                        if (info.status === "recognizing text") {
 
-Non vengono inventati dati se l'OCR non è disponibile.
-*/
+                            const percentuale =
+                                Math.round(
+                                    info.progress * 100
+                                );
 
-}
+                            document.getElementById(
+                                "percentualeOCR"
+                            ).innerText =
+                                "Lettura: " +
+                                percentuale +
+                                "%";
+
+                        }
+
+                    }
+                }
+            );
 
 
-function dl(nome,testo,tipo){
+        const testo =
+            risultato.data.text || "";
 
-const url=URL.createObjectURL(
 
-new Blob([testo],{type:tipo})
+        document.getElementById("testoOCR").value =
+            testo;
 
-);
+        document.getElementById("testoOCR").style.display =
+            "block";
 
-const a=document.createElement("a");
 
-a.href=url;
+        estraiDatiDocumento(testo);
 
-a.download=nome;
 
-a.click();
+        document.getElementById(
+            "percentualeOCR"
+        ).innerText =
+            "Lettura completata. Controlla i dati.";
 
-URL.revokeObjectURL(url);
+
+    } catch (errore) {
+
+        console.error(errore);
+
+        document.getElementById(
+            "percentualeOCR"
+        ).innerText =
+            "Errore durante la lettura del documento.";
+
+    }
 
 }
 
 
-function exp(tipo){
+/* =========================
+   SALVA FOTO
+========================= */
 
-const dati=A();
+function salvaFotoSulTelefono(file) {
 
-if(!dati.length){
+    try {
 
-alert("Nessun ospite salvato");
+        const url =
+            URL.createObjectURL(file);
 
-return;
+        const link =
+            document.createElement("a");
 
-}
+        link.href = url;
 
+        link.download =
+            "documento_" +
+            new Date().getTime() +
+            ".jpg";
 
-if(tipo==="alloggiati"){
+        document.body.appendChild(link);
 
-const testo=dati.map(x=>
+        link.click();
 
-[
+        document.body.removeChild(link);
 
-x.cognome,
+        setTimeout(function() {
 
-x.nome,
+            URL.revokeObjectURL(url);
 
-x.documento,
+        }, 3000);
 
-x.arrivo,
+    } catch (errore) {
 
-x.partenza
+        console.log(
+            "Salvataggio foto non disponibile",
+            errore
+        );
 
-].join(";")
-
-).join("\n");
-
-
-dl(
-
-"alloggiati.txt",
-
-testo,
-
-"text/plain"
-
-);
+    }
 
 }
 
 
-if(tipo==="spot"){
+/* =========================
+   ESTRAZIONE DATI OCR
+========================= */
 
-const testo=
+function estraiDatiDocumento(testo) {
 
-'<?xml version="1.0" encoding="UTF-8"?>'+
-
-"<ospiti>"+
-
-dati.map(x=>
-
-"<ospite>"+
-
-"<cognome>"+escapeHtml(x.cognome)+"</cognome>"+
-
-"<nome>"+escapeHtml(x.nome)+"</nome>"+
-
-"<documento>"+escapeHtml(x.documento||"")+"</documento>"+
-
-"<arrivo>"+(x.arrivo||"")+"</arrivo>"+
-
-"<partenza>"+(x.partenza||"")+"</partenza>"+
-
-"</ospite>"
-
-).join("")+
-
-"</ospiti>";
+    const righe =
+        testo
+        .toUpperCase()
+        .split(/\r?\n/)
+        .map(r => r.trim())
+        .filter(r => r.length > 0);
 
 
-dl(
+    let cognome = "";
+    let nome = "";
+    let documento = "";
 
-"spot.xml",
 
-testo,
+    /*
+       Cerchiamo il cognome.
+    */
 
-"application/xml"
+    for (let i = 0; i < righe.length; i++) {
 
-);
+        if (
+            righe[i].includes("COGNOME") ||
+            righe[i].includes("SURNAME")
+        ) {
+
+            if (righe[i + 1]) {
+
+                const valore =
+                    pulisciNome(
+                        righe[i + 1]
+                    );
+
+                if (valore.length > 1) {
+
+                    cognome = valore;
+                    break;
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       Cerchiamo il nome.
+    */
+
+    for (let i = 0; i < righe.length; i++) {
+
+        if (
+            righe[i].includes("NOME") ||
+            righe[i].includes("NAME")
+        ) {
+
+            if (righe[i + 1]) {
+
+                const valore =
+                    pulisciNome(
+                        righe[i + 1]
+                    );
+
+                if (valore.length > 1) {
+
+                    nome = valore;
+                    break;
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       Cerchiamo un codice compatibile
+       con il numero della CIE.
+    */
+
+    const testoPulito =
+        testo
+        .toUpperCase()
+        .replace(/\s+/g, " ");
+
+
+    const codici =
+        testoPulito.match(
+            /\b[A-Z]{2}\d{5,8}[A-Z0-9]?\b/g
+        );
+
+
+    if (codici && codici.length > 0) {
+
+        documento = codici[0];
+
+    }
+
+
+    /*
+       Seconda ricerca più permissiva.
+    */
+
+    if (!documento) {
+
+        const possibile =
+            testoPulito.match(
+                /\b[A-Z0-9]{7,12}\b/g
+            );
+
+        if (possibile) {
+
+            for (const codice of possibile) {
+
+                if (
+                    /\d/.test(codice) &&
+                    /[A-Z]/.test(codice)
+                ) {
+
+                    documento = codice;
+                    break;
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       Inserimento nei campi.
+    */
+
+    if (cognome) {
+
+        document.getElementById(
+            "cognome"
+        ).value = cognome;
+
+    }
+
+
+    if (nome) {
+
+        document.getElementById(
+            "nome"
+        ).value = nome;
+
+    }
+
+
+    if (documento) {
+
+        document.getElementById(
+            "documento"
+        ).value = documento;
+
+    }
+
+
+    if (
+        !cognome &&
+        !nome &&
+        !documento
+    ) {
+
+        alert(
+            "OCR completato, ma non sono riuscito a riconoscere automaticamente i dati. Puoi inserirli manualmente."
+        );
+
+    }
 
 }
 
 
-if(tipo==="taranto"){
+/* =========================
+   PULIZIA NOMI
+========================= */
 
-const testo=
+function pulisciNome(valore) {
 
-"Cognome;Nome;Documento;Arrivo;Partenza\n"+
-
-dati.map(x=>
-
-[
-
-x.cognome,
-
-x.nome,
-
-x.documento,
-
-x.arrivo,
-
-x.partenza
-
-].join(";")
-
-).join("\n");
-
-
-dl(
-
-"tassa_soggiorno_taranto.csv",
-
-testo,
-
-"text/csv"
-
-);
-
-}
+    return valore
+        .replace(/[^A-ZÀ-Ú' -]/gi, "")
+        .trim();
 
 }
 
 
-R();
+/* =========================
+   DATI OSPITI
+========================= */
+
+function caricaOspiti() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(CHIAVE)
+        ) || [];
+
+    } catch (errore) {
+
+        return [];
+
+    }
+
+}
 
 
-if("serviceWorker" in navigator){
+function salvaOspiti(ospiti) {
 
-navigator.serviceWorker.register("sw.js");
+    localStorage.setItem(
+        CHIAVE,
+        JSON.stringify(ospiti)
+    );
+
+}
+
+
+/* =========================
+   SALVA OSPITE
+========================= */
+
+function salvaOspite() {
+
+    const cognome =
+        document.getElementById("cognome").value.trim();
+
+    const nome =
+        document.getElementById("nome").value.trim();
+
+    const documento =
+        document.getElementById("documento").value.trim();
+
+    const arrivo =
+        document.getElementById("arrivo").value;
+
+    const partenza =
+        document.getElementById("partenza").value;
+
+    const tipoDocumento =
+        document.getElementById("tipoDocumento").value;
+
+    const nazionalita =
+        document.getElementById("nazionalita").value;
+
+
+    if (!cognome || !nome) {
+
+        alert(
+            "Inserisci almeno Cognome e Nome."
+        );
+
+        return;
+
+    }
+
+
+    const ospiti =
+        caricaOspiti();
+
+
+    ospiti.push({
+
+        id: Date.now(),
+
+        cognome: cognome,
+
+        nome: nome,
+
+        documento: documento,
+
+        arrivo: arrivo,
+
+        partenza: partenza,
+
+        tipoDocumento: tipoDocumento,
+
+        nazionalita: nazionalita,
+
+        dataInserimento:
+            new Date().toISOString()
+
+    });
+
+
+    salvaOspiti(ospiti);
+
+    mostraOspiti();
+
+    pulisciForm();
+
+
+    alert(
+        "Ospite salvato correttamente."
+    );
+
+}
+
+
+/* =========================
+   MOSTRA OSPITI
+========================= */
+
+function mostraOspiti() {
+
+    const lista =
+        document.getElementById("lista");
+
+    const ospiti =
+        caricaOspiti();
+
+
+    if (!ospiti.length) {
+
+        lista.innerHTML =
+            "<p>Nessun ospite registrato.</p>";
+
+        return;
+
+    }
+
+
+    lista.innerHTML = "";
+
+
+    ospiti.forEach(function(ospite) {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "ospite";
+
+
+        div.innerHTML = `
+
+            <b>
+                ${escapeHtml(ospite.cognome)}
+                ${escapeHtml(ospite.nome)}
+            </b>
+
+            <br>
+
+            Documento:
+            ${escapeHtml(ospite.documento || "-")}
+
+            <br>
+
+            Arrivo:
+            ${escapeHtml(ospite.arrivo || "-")}
+
+            <br>
+
+            Partenza:
+            ${escapeHtml(ospite.partenza || "-")}
+
+            <br>
+
+            <button
+                class="red"
+                onclick="eliminaOspite(${ospite.id})"
+            >
+                Elimina
+            </button>
+
+        `;
+
+
+        lista.appendChild(div);
+
+    });
+
+}
+
+
+/* =========================
+   ELIMINA OSPITE
+========================= */
+
+function eliminaOspite(id) {
+
+    if (
+        !confirm(
+            "Vuoi eliminare questo ospite?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    let ospiti =
+        caricaOspiti();
+
+
+    ospiti =
+        ospiti.filter(
+            ospite =>
+                ospite.id !== id
+        );
+
+
+    salvaOspiti(ospiti);
+
+    mostraOspiti();
+
+}
+
+
+/* =========================
+   PULISCI FORM
+========================= */
+
+function pulisciForm() {
+
+    document.getElementById(
+        "cognome"
+    ).value = "";
+
+    document.getElementById(
+        "nome"
+    ).value = "";
+
+    document.getElementById(
+        "documento"
+    ).value = "";
+
+    document.getElementById(
+        "partenza"
+    ).value = "";
+
+    document.getElementById(
+        "tipoDocumento"
+    ).value = "";
+
+    document.getElementById(
+        "nazionalita"
+    ).value = "";
+
+    document.getElementById(
+        "foto"
+    ).value = "";
+
+    document.getElementById(
+        "anteprima"
+    ).style.display = "none";
+
+}
+
+
+/* =========================
+   ESCAPE HTML
+========================= */
+
+function escapeHtml(testo) {
+
+    return String(testo || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================
+   DOWNLOAD FILE
+========================= */
+
+function scaricaFile(
+    contenuto,
+    nome,
+    tipo
+) {
+
+    const blob =
+        new Blob(
+            [contenuto],
+            { type: tipo }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download = nome;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+
+    setTimeout(function() {
+
+        URL.revokeObjectURL(url);
+
+    }, 1000);
+
+}
+
+
+/* =========================
+   ALLOGGIATI WEB
+========================= */
+
+function esportaAlloggiati() {
+
+    const ospiti =
+        caricaOspiti();
+
+
+    if (!ospiti.length) {
+
+        alert(
+            "Non ci sono ospiti da esportare."
+        );
+
+        return;
+
+    }
+
+
+    let testo = "";
+
+
+    ospiti.forEach(function(o) {
+
+        testo +=
+            [
+                o.cognome,
+                o.nome,
+                o.documento,
+                o.arrivo,
+                o.partenza
+            ]
+            .join(";") +
+            "\r\n";
+
+    });
+
+
+    scaricaFile(
+        testo,
+        "alloggiati_web.txt",
+        "text/plain;charset=utf-8"
+    );
+
+}
+
+
+/* =========================
+   SPOT
+========================= */
+
+function esportaSPOT() {
+
+    const ospiti =
+        caricaOspiti();
+
+
+    if (!ospiti.length) {
+
+        alert(
+            "Non ci sono ospiti da esportare."
+        );
+
+        return;
+
+    }
+
+
+    let xml =
+        '<?xml version="1.0" encoding="UTF-8"?>';
+
+    xml +=
+        "<ospiti>";
+
+
+    ospiti.forEach(function(o) {
+
+        xml += "<ospite>";
+
+        xml +=
+            "<cognome>" +
+            escapeXml(o.cognome) +
+            "</cognome>";
+
+        xml +=
+            "<nome>" +
+            escapeXml(o.nome) +
+            "</nome>";
+
+        xml +=
+            "<documento>" +
+            escapeXml(o.documento) +
+            "</documento>";
+
+        xml +=
+            "<arrivo>" +
+            escapeXml(o.arrivo) +
+            "</arrivo>";
+
+        xml +=
+            "<partenza>" +
+            escapeXml(o.partenza) +
+            "</partenza>";
+
+        xml += "</ospite>";
+
+    });
+
+
+    xml +=
+        "</ospiti>";
+
+
+    scaricaFile(
+        xml,
+        "spot_puglia.xml",
+        "application/xml;charset=utf-8"
+    );
+
+}
+
+
+/* =========================
+   TASSA DI SOGGIORNO
+========================= */
+
+function esportaTassa() {
+
+    const ospiti =
+        caricaOspiti();
+
+
+    if (!ospiti.length) {
+
+        alert(
+            "Non ci sono ospiti da esportare."
+        );
+
+        return;
+
+    }
+
+
+    let csv =
+        "Cognome;Nome;Documento;Arrivo;Partenza\n";
+
+
+    ospiti.forEach(function(o) {
+
+        csv +=
+            [
+                o.cognome,
+                o.nome,
+                o.documento,
+                o.arrivo,
+                o.partenza
+            ]
+            .join(";") +
+            "\n";
+
+    });
+
+
+    scaricaFile(
+        csv,
+        "tassa_soggiorno_taranto.csv",
+        "text/csv;charset=utf-8"
+    );
+
+}
+
+
+/* =========================
+   XML ESCAPE
+========================= */
+
+function escapeXml(testo) {
+
+    return String(testo || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
 
 }
 
