@@ -1,0 +1,35 @@
+name: Pubblica B&B Manager Taranto
+
+on:
+  push:
+    branches:
+      - principale
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Scarica il repository
+        uses: actions/checkout@v6
+
+      - name: Configura GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Carica i file del sito
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: '.'
+
+      - name: Pubblica su GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
